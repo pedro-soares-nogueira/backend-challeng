@@ -4,11 +4,13 @@ import multer from "multer";
 import readline from "readline";
 import { Readable } from "stream";
 import { z } from "zod";
+import cors from "cors";
 
 export const app = express();
 
 const prisma = new PrismaClient();
 const multerConfig = multer();
+app.use(cors());
 
 app.post("/upload", multerConfig.single("file"), async (request, response) => {
     const uploadSchema = z.object({
