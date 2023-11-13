@@ -1,45 +1,84 @@
-import fastify from "fastify";
 import { PrismaClient } from "@prisma/client";
+import express from "express";
+import multer from "multer";
+import readline from "readline";
+import { Readable } from "stream";
 import { z } from "zod";
 
-export const app = fastify();
+export const app = express();
 
 const prisma = new PrismaClient();
+const multerConfig = multer();
 
-app.post("/upload", async (request, reply) => {
-    const uploadBodySchema = z.object({
-        name: z.string(), // "John Doe",
-        governmentId: z.number(), // 11111111111,
-        email: z.string(), // "johndoe@kanastra.com.br",
-        debtAmount: z.number(), // 1000000.0,
-        debtDueDate: z.string(), // "2022-10-12",
-        debtID: z.string(), // "12,1adb6ccf-ff16-467f-bea7-5f05d494280f",
+app.post("/upload", multerConfig.single("file"), async (request, response) => {
+    const uploadSchema = z.object({
+        name: z.string(),
+        governmentId: z.number(),
+        email: z.string(),
+        debtAmount: z.number(),
+        debtDueDate: z.string(),
+        debtID: z.string(),
     });
 
-    const { debtAmount, debtDueDate, debtID, email, governmentId, name } =
-        uploadBodySchema.parse(request.body);
+    const { file } = request;
 
-    await prisma.document.create({
-        data: {
-            name,
-            governmentId,
-            email,
-            debtAmount,
-            debtDueDate,
-            debtID,
-        },
-    });
+    const documents = [];
+    let firstLine = true;
 
-    return reply.status(201).send();
+    if (file) {
+        const { buffer } = file;
+
+        if (buffer) {
+            const readableFile = new Readable();
+            readableFile.push(buffer);
+            readableFile.push(null);
+
+            const documentLine = readline.createInterface({
+                input: readableFile,
+            });
+
+            for await (let line of documentLine) {
+                const documentLineSlit = line.split(",");
+
+                // ignore the first line which is a header
+                if (firstLine) {
+                    firstLine = false;
+                    continue;
+                }
+
+                documents.push({
+                    name: documentLineSlit[0],
+                    governmentId: Number(documentLineSlit[1]),
+                    email: documentLineSlit[2],
+                    debtAmount: Number(documentLineSlit[3]),
+                    debtDueDate: documentLineSlit[4],
+                    debtID: documentLineSlit[5],
+                });
+            }
+
+            for await (let {
+                name,
+                governmentId,
+                email,
+                debtAmount,
+                debtDueDate,
+                debtID,
+            } of documents) {
+                await prisma.document.create({
+                    data: {
+                        name,
+                        governmentId,
+                        email,
+                        debtAmount,
+                        debtDueDate,
+                        debtID,
+                    },
+                });
+            }
+        } else {
+        }
+    } else {
+    }
+
+    return response.status(201).json({ documents });
 });
-
-// prisma.document.create({
-//     data: {
-//         name: "John Doe",
-//         governmentId: 11111111111,
-//         email: "johndoe@kanastra.com.br",
-//         debtAmount: 1000000.0,
-//         debtDueDate: "2022-10-12",
-//         debtID: "12,1adb6ccf-ff16-467f-bea7-5f05d494280f",
-//     },
-// });

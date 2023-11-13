@@ -11,7 +11,7 @@ model Document {
   debtID String @id
   name String
   governmentId BigInt
-  email String @unique
+  email String 
   debtAmount Float
   debtDueDate String
 
