@@ -16,11 +16,13 @@
         "@typescript-eslint/parser": "6.11.0",
         "eslint": "8.53.0",
         "eslint-plugin-react": "7.33.2",
+        "prisma": "5.5.2",
         "tsup": "7.2.0",
         "tsx": "4.1.1",
         "typescript": "5.2.2"
     },
     "dependencies": {
+        "@prisma/client": "5.5.2",
         "dotenv": "16.0.3",
         "fastify": "4.13.0",
         "zod": "3.20.6"
