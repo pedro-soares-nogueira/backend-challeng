@@ -10,7 +10,7 @@ datasource db {
 model Document {
   debtID String @id
   name String
-  governmentId BigInt
+  governmentId Int
   email String 
   debtAmount Float
   debtDueDate String

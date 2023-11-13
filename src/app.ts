@@ -12,6 +12,12 @@ const prisma = new PrismaClient();
 const multerConfig = multer();
 app.use(cors());
 
+app.get("/documents", async (request, response) => {
+    const documents = await prisma.document.findMany({});
+
+    return response.status(201).json({ documents });
+});
+
 app.post("/upload", multerConfig.single("file"), async (request, response) => {
     const uploadSchema = z.object({
         name: z.string(),
