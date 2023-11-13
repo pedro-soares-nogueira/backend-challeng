@@ -82,3 +82,9 @@ app.post("/upload", multerConfig.single("file"), async (request, response) => {
 
     return response.status(201).json({ documents });
 });
+
+app.delete("/delete-all", async (request, response) => {
+    await prisma.document.deleteMany({});
+
+    return response.status(201).send();
+});
