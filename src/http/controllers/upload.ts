@@ -1,16 +1,8 @@
-import { uploadUseCase } from "@/use-cases/upload";
+import { PrismaUploadRepository } from "@/repositories/prisma-users-repository";
+import { UploadUseCase } from "@/use-cases/upload";
 import { Request, Response } from "express";
 
 export const uploadFile = async (request: Request, response: Response) => {
-    // const uploadSchema = z.object({
-    //     name: z.string(),
-    //     governmentId: z.number(),
-    //     email: z.string(),
-    //     debtAmount: z.number(),
-    //     debtDueDate: z.string(),
-    //     debtID: z.string(),
-    // });
-
     const { file } = request;
 
     if (!file) {
@@ -18,7 +10,10 @@ export const uploadFile = async (request: Request, response: Response) => {
     }
 
     try {
-        await uploadUseCase({ file });
+        const uploadRepository = new PrismaUploadRepository();
+        const uploadUseCase = new UploadUseCase(uploadRepository);
+
+        await uploadUseCase.execute({ file });
     } catch (error) {
         return response.status(409).send();
     }

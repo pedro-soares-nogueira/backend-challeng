@@ -7,69 +7,73 @@ interface UploadUseCaseRequest {
     file: Express.Multer.File;
 }
 
-export const uploadUseCase = async ({ file }: UploadUseCaseRequest) => {
-    const documents = [];
-    let firstLine = true;
+export class UploadUseCase {
+    constructor(private uploadRepository: any) {}
 
-    if (file) {
-        const { buffer } = file;
+    async execute({ file }: UploadUseCaseRequest) {
+        const documents = [];
+        let firstLine = true;
 
-        if (buffer) {
-            const readableFile = new Readable();
-            readableFile.push(buffer);
-            readableFile.push(null);
+        if (file) {
+            const { buffer } = file;
 
-            const documentLine = readline.createInterface({
-                input: readableFile,
-            });
+            if (buffer) {
+                const readableFile = new Readable();
+                readableFile.push(buffer);
+                readableFile.push(null);
 
-            for await (let line of documentLine) {
-                const documentLineSlit = line.split(",");
+                const documentLine = readline.createInterface({
+                    input: readableFile,
+                });
 
-                // ignore the first line which is a header
-                if (firstLine) {
-                    firstLine = false;
-                    continue;
+                for await (let line of documentLine) {
+                    const documentLineSlit = line.split(",");
+
+                    // ignore the first line which is a header
+                    if (firstLine) {
+                        firstLine = false;
+                        continue;
+                    }
+
+                    documents.push({
+                        name: documentLineSlit[0],
+                        governmentId: Number(documentLineSlit[1]),
+                        email: documentLineSlit[2],
+                        debtAmount: Number(documentLineSlit[3]),
+                        debtDueDate: documentLineSlit[4],
+                        debtID: documentLineSlit[5],
+                    });
                 }
 
-                documents.push({
-                    name: documentLineSlit[0],
-                    governmentId: Number(documentLineSlit[1]),
-                    email: documentLineSlit[2],
-                    debtAmount: Number(documentLineSlit[3]),
-                    debtDueDate: documentLineSlit[4],
-                    debtID: documentLineSlit[5],
-                });
-            }
+                // const prismaUploadRepositry = new PrismaUploadRepository();
 
-            const prismaUploadRepositry = new PrismaUploadRepository();
-
-            for await (let {
-                name,
-                governmentId,
-                email,
-                debtAmount,
-                debtDueDate,
-                debtID,
-            } of documents) {
-                await prismaUploadRepositry.upload({
+                for await (let {
                     name,
                     governmentId,
                     email,
                     debtAmount,
                     debtDueDate,
                     debtID,
-                });
+                } of documents) {
+                    await this.uploadRepository.upload({
+                        name,
+                        governmentId,
+                        email,
+                        debtAmount,
+                        debtDueDate,
+                        debtID,
+                    });
+                }
+            } else {
+                throw new Error("There is no buffer on file");
             }
         } else {
-            throw new Error("There is no buffer on file");
+            throw new Error("There is no file on request");
         }
-    } else {
-        throw new Error("There is no file on request");
-    }
 
-    return file;
-};
+        return file;
+    }
+}
 
 // ------------------------------------------------------------------------------
 
