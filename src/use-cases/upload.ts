@@ -3,6 +3,7 @@ import { PrismaUploadRepository } from "@/repositories/prisma/prisma-upload-repo
 import { UploadRepository } from "@/repositories/upload-repository";
 import readline from "readline";
 import { Readable } from "stream";
+import { GeneralHandlerError } from "./errors/general-handler-error";
 
 interface UploadUseCaseRequest {
     file: Express.Multer.File;
@@ -66,10 +67,10 @@ export class UploadUseCase {
                     });
                 }
             } else {
-                throw new Error("There is no buffer on file");
+                throw new GeneralHandlerError();
             }
         } else {
-            throw new Error("There is no file on request");
+            throw new GeneralHandlerError();
         }
 
         return file;

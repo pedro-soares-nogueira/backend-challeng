@@ -1,4 +1,5 @@
 import { PrismaUploadRepository } from "@/repositories/prisma/prisma-upload-repository";
+import { GeneralHandlerError } from "@/use-cases/errors/general-handler-error";
 import { UploadUseCase } from "@/use-cases/upload";
 import { Request, Response } from "express";
 
@@ -15,7 +16,12 @@ export const uploadFile = async (request: Request, response: Response) => {
 
         await uploadUseCase.execute({ file });
     } catch (error) {
-        return response.status(409).send();
+        if (error instanceof GeneralHandlerError) {
+            return response.status(409).send({ message: error.message });
+        }
+        throw error;
+
+        // return response.status(500).send(); // TODO: fix me
     }
     return response.status(201).json();
 };
