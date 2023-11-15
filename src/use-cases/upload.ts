@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { PrismaUploadRepository } from "@/repositories/prisma-users-repository";
 import readline from "readline";
 import { Readable } from "stream";
 
@@ -41,6 +42,8 @@ export const uploadUseCase = async ({ file }: UploadUseCaseRequest) => {
                 });
             }
 
+            const prismaUploadRepositry = new PrismaUploadRepository();
+
             for await (let {
                 name,
                 governmentId,
@@ -49,15 +52,13 @@ export const uploadUseCase = async ({ file }: UploadUseCaseRequest) => {
                 debtDueDate,
                 debtID,
             } of documents) {
-                await prisma.document.create({
-                    data: {
-                        name,
-                        governmentId,
-                        email,
-                        debtAmount,
-                        debtDueDate,
-                        debtID,
-                    },
+                await prismaUploadRepositry.upload({
+                    name,
+                    governmentId,
+                    email,
+                    debtAmount,
+                    debtDueDate,
+                    debtID,
                 });
             }
         } else {
@@ -70,6 +71,8 @@ export const uploadUseCase = async ({ file }: UploadUseCaseRequest) => {
     return file;
 };
 
+// ------------------------------------------------------------------------------
+
 // const uploadSchema = z.object({
 //     name: z.string(),
 //     governmentId: z.number(),
@@ -80,59 +83,3 @@ export const uploadUseCase = async ({ file }: UploadUseCaseRequest) => {
 // });
 
 // ------------------------------------------------------------------------------
-
-// if (!file) {
-//     throw new Error("There is no file on request");
-// }
-
-// const fileReader = new FileReader();
-// console.log("file");
-
-// fileReader.onload = async () => {
-//     const buffer = fileReader.result as ArrayBuffer;
-
-//     if (buffer) {
-//         const readableFile = new Readable();
-//         readableFile.push(Buffer.from(buffer));
-//         readableFile.push(null);
-
-//         const documentLine = readline.createInterface({
-//             input: readableFile,
-//         });
-
-//         let firstLine = true;
-
-//         for await (const line of documentLine) {
-//             const documentLineSplit = line.split(",");
-
-//             if (firstLine) {
-//                 firstLine = false;
-//                 continue;
-//             }
-
-//             const [
-//                 name,
-//                 governmentId,
-//                 email,
-//                 debtAmount,
-//                 debtDueDate,
-//                 debtID,
-//             ] = documentLineSplit;
-
-//             await prisma.document.create({
-//                 data: {
-//                     name,
-//                     governmentId: Number(governmentId),
-//                     email,
-//                     debtAmount: Number(debtAmount),
-//                     debtDueDate,
-//                     debtID,
-//                 },
-//             });
-//         }
-//     } else {
-//         throw new Error("There is no buffer on file");
-//     }
-// };
-
-// fileReader.readAsArrayBuffer(file);
