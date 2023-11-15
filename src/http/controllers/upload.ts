@@ -1,4 +1,4 @@
-import { PrismaUploadRepository } from "@/repositories/prisma-users-repository";
+import { PrismaUploadRepository } from "@/repositories/prisma/prisma-upload-repository";
 import { UploadUseCase } from "@/use-cases/upload";
 import { Request, Response } from "express";
 

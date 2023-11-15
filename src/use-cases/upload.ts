@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { PrismaUploadRepository } from "@/repositories/prisma-users-repository";
+import { PrismaUploadRepository } from "@/repositories/prisma/prisma-upload-repository";
+import { UploadRepository } from "@/repositories/upload-repository";
 import readline from "readline";
 import { Readable } from "stream";
 
@@ -8,7 +9,7 @@ interface UploadUseCaseRequest {
 }
 
 export class UploadUseCase {
-    constructor(private uploadRepository: any) {}
+    constructor(private uploadRepository: UploadRepository) {}
 
     async execute({ file }: UploadUseCaseRequest) {
         const documents = [];
